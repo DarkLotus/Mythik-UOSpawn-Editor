@@ -1,10 +1,16 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 using ClassicUO.IO.Resources;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
+using Xml2CSharp;
 using Client = ClassicUO.Client;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Assets.Editor
 {
@@ -26,18 +32,21 @@ namespace Assets.Editor
             window.Show();
         }
 
-        [MenuItem("UO Tools/Add ModernUO Spawner")]
+        [MenuItem("UO Tools/Add Spawner")]
         static void AddSpawner()
         {
             var go = new GameObject("New Spawner");
-            go.AddComponent<ModernUOSpawner>();
+            var sp = go.AddComponent<SpawnComponent>();
             Selection.activeObject = go;
             SceneView.lastActiveSceneView.AlignWithView();
             var loc = go.transform.position;
             //TODO move to SKUO file loader and get avg Z from terrain/statics
             //var z = Ultima.Map.Felucca.Tiles.GetLandTile((int)loc.z, (int)loc.x);
-
             go.transform.position = new Vector3(loc.x, 5, loc.z);
+            if (SpawnComponent.ModernUOSpawner)
+                sp.DataJSON = new ModernUOBaseSpawner();
+            else
+                sp.DataXML = new XML2Spawner(true);
 
         }
      
@@ -65,7 +74,7 @@ namespace Assets.Editor
             _uopath = GUILayout.TextField(_uopath);
             if (GUILayout.Button("Select UO Folder"))
             {
-                
+                _uopath = EditorUtility.OpenFolderPanel("Select UO Data folder", "", "");
             }
             _map = (MapEnum)EditorGUILayout.EnumFlagsField(_map);
             if((int)_map <= 1)
@@ -146,50 +155,106 @@ namespace Assets.Editor
             }*/
             
             EditorGUILayout.Separator();
-            showModernUOSpawnerTools = EditorGUILayout.Foldout(showModernUOSpawnerTools, "ModernUO JSON Spawners");
+            SpawnComponent.ModernUOSpawner =
+                EditorGUILayout.Toggle("ModernUO or XML2", SpawnComponent.ModernUOSpawner);
+            
 
-            if (showModernUOSpawnerTools)
+            if (SpawnComponent.ModernUOSpawner)
             {
+                showModernUOSpawnerTools = EditorGUILayout.Foldout(showModernUOSpawnerTools, "ModernUO JSON Spawners");
+
                 if (GUILayout.Button("Load Spawner"))
                 {
-                    LoadSpawnerFile();
+                    LoadJSONSpawnerFile();
                 }
                 if (GUILayout.Button("Export Selected Spawners"))
                 {
-                    ExportSpawners(Selection.gameObjects);
+                    ExportJSONSpawners(Selection.gameObjects);
                 }            
                 if (GUILayout.Button("Export All Spawners"))
                 {
-                    ExportSpawners(GameObject.FindGameObjectsWithTag("Spawner"));
-
+                    ExportJSONSpawners(GameObject.FindGameObjectsWithTag("Spawner"));
                 }
 
-                ModernUOSpawner.DrawName = EditorGUILayout.Toggle("Draw Spawn Names", ModernUOSpawner.DrawName);
-                ModernUOSpawner.DrawHomeRange = EditorGUILayout.Toggle("Draw Home Range", ModernUOSpawner.DrawHomeRange);
-                ModernUOSpawner.DrawWalkRange = EditorGUILayout.Toggle("Draw Walk Range", ModernUOSpawner.DrawWalkRange);
+                SpawnComponent.DrawName = EditorGUILayout.Toggle("Draw Spawn Names", SpawnComponent.DrawName);
+                SpawnComponent.DrawHomeRange = EditorGUILayout.Toggle("Draw Home Range", SpawnComponent.DrawHomeRange);
+                SpawnComponent.DrawWalkRange = EditorGUILayout.Toggle("Draw Walk Range", SpawnComponent.DrawWalkRange);
 
             }
             
-           /* showXMLSpawnerTools = EditorGUILayout.Foldout(showXMLSpawnerTools, "XML Spawners");
  
-            if (showXMLSpawnerTools)
+            if (!SpawnComponent.ModernUOSpawner)
             {
+                showXMLSpawnerTools = EditorGUILayout.Foldout(showXMLSpawnerTools, "XML Spawners");
                 if (GUILayout.Button("Load Spawner"))
                 {
-                
+                    LoadXMLSpawnerFile();
+
                 }
                 if (GUILayout.Button("Export Selected Spawners"))
                 {
-                    ExportSpawners(Selection.gameObjects);
+                    ExportXMLSpawners(Selection.gameObjects);
                 }            
                 if (GUILayout.Button("Export All Spawners"))
                 {
-                    ExportSpawners(GameObject.FindGameObjectsWithTag("Spawner"));
+                    ExportXMLSpawners(GameObject.FindGameObjectsWithTag("Spawner"));
                 }      
-            }*/
+            }
 
         }
+
+        private static string lastDirectory = "";
+        private void LoadXMLSpawnerFile()
+        {
+            if (!TagExists("Spawner"))
+                CreateTag("Spawner");
+            var file = EditorUtility.OpenFilePanel("Select Spawner", lastDirectory, "xml");
+            lastDirectory = Path.GetDirectoryName(file);
+
+            var parent = new GameObject(Path.GetFileNameWithoutExtension(file));
+
+            if (!string.IsNullOrWhiteSpace(file))
+            {
+                var spawners = DeserializeObject<Spawns>(File.OpenRead(file));
+                foreach (var spawner in spawners.Points)
+                {
+                    var go = new GameObject(spawner.Name);
+                    go.tag = "Spawner";
+                    var sp = go.AddComponent<SpawnComponent>();
+                    go.transform.parent = parent.transform;
+                    sp.InitSpawner(spawner);
+                }
+            }
+        }
         
+
+        public static T DeserializeObject<T>(Stream xml)
+        {
+            XmlSerializer xs = new XmlSerializer(typeof(T));
+            using (var r = new MyXmlReader(new StreamReader(xml)))
+            return (T)xs.Deserialize(r);
+        }
+        public class MyXmlReader : XmlTextReader
+        {
+            public MyXmlReader(TextReader reader) : base(reader) { }
+            public override string ReadElementString()
+            {
+                var text = base.ReadElementString();
+
+                // bool TryParse accepts case-insensitive 'true' and 'false'
+                if (bool.TryParse(text, out bool result))
+                {
+                    text = XmlConvert.ToString(result);
+                }
+
+                return text;
+            }
+        }
+        private void ExportXMLSpawners(GameObject[] findGameObjectsWithTag)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private static Sprite SaveSpriteToEditorPath(Sprite sp,string path) {
  
             string dir = Path.GetDirectoryName (path);
@@ -215,17 +280,19 @@ namespace Assets.Editor
         }
         
         
-        private static void ExportSpawners(GameObject[] gameObjects)
+        private static void ExportJSONSpawners(GameObject[] gameObjects)
         {
-            var export = new List<BaseSpawner>();
+            var export = new List<ModernUOBaseSpawner>();
             foreach (var go in gameObjects)
             {
-                var sp = go.GetComponent<ModernUOSpawner>();
+                var sp = go.GetComponent<SpawnComponent>();
                 sp.Sync();
-                export.Add(sp.Data);
+                export.Add(sp.DataJSON);
             }
 
-            var filepath = EditorUtility.SaveFilePanel("Save File", "", "spawner","json");
+            var filepath = EditorUtility.SaveFilePanel("Save File", lastDirectory, "spawner","json");
+            lastDirectory = Path.GetDirectoryName(filepath);
+
             if (!string.IsNullOrWhiteSpace(filepath))
             {
                 File.WriteAllText(filepath,JsonConvert.SerializeObject(export,Formatting.Indented,new JsonSerializerSettings
@@ -235,22 +302,22 @@ namespace Assets.Editor
                 Debug.Log($"Saved {export.Count} Spawners to {filepath}");
             }
         }
-        private static void LoadSpawnerFile()
+        private static void LoadJSONSpawnerFile()
         {
             if (!TagExists("Spawner"))
                 CreateTag("Spawner");
-            var file = EditorUtility.OpenFilePanel("Select Spawner", "", "json");
-
+            var file = EditorUtility.OpenFilePanel("Select Spawner", lastDirectory, "json");
+            lastDirectory = Path.GetDirectoryName(file);
             var parent = new GameObject(Path.GetFileNameWithoutExtension(file));
 
             if (!string.IsNullOrWhiteSpace(file))
             {
-                var spawners = JsonConvert.DeserializeObject<List<BaseSpawner>>(File.ReadAllText(file));
+                var spawners = JsonConvert.DeserializeObject<List<ModernUOBaseSpawner>>(File.ReadAllText(file));
                 foreach (var spawner in spawners)
                 {
                     var go = new GameObject(spawner.name);
                     go.tag = "Spawner";
-                    var sp = go.AddComponent<ModernUOSpawner>();
+                    var sp = go.AddComponent<SpawnComponent>();
                     go.transform.parent = parent.transform;
                     sp.InitSpawner(spawner);
                 }

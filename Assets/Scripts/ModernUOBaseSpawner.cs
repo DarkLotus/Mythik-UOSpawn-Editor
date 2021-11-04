@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Assets.Editor
 {
     [Serializable]
-    public class BaseSpawner
+    public class ModernUOBaseSpawner : ISpawner
     {
         public static List<string> Constructables = new List<string>();
 
@@ -65,7 +65,7 @@ namespace Assets.Editor
         [JsonProperty("entries")]
         public List<SpawnerEntry> Entries;
 
-        public BaseSpawner()
+        public ModernUOBaseSpawner()
         {
             Entries = new List<SpawnerEntry>();
             walkingRange = 10;
@@ -96,8 +96,12 @@ namespace Assets.Editor
         public Vector3 ToUnityPos() => new Vector3(Location[1], Location[2], Location[0]);
         private bool IsValidTimestamp(string str) => (TimeSpan.TryParse(str, out _));
 
-      
+
+
     }
 
-   
+    
+    public interface ISpawner
+    {
+    }
 }
