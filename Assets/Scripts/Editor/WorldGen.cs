@@ -177,8 +177,6 @@ namespace Assets.Editor
                     ExportJSONSpawners(GameObject.FindGameObjectsWithTag("Spawner"));
                 }
 
-                SpawnComponent.DrawName = EditorGUILayout.Toggle("Draw Spawn Names", SpawnComponent.DrawName);
-                SpawnComponent.DrawHomeRange = EditorGUILayout.Toggle("Draw Home Range", SpawnComponent.DrawHomeRange);
                 SpawnComponent.DrawWalkRange = EditorGUILayout.Toggle("Draw Walk Range", SpawnComponent.DrawWalkRange);
 
             }
@@ -201,6 +199,9 @@ namespace Assets.Editor
                     ExportXMLSpawners(GameObject.FindGameObjectsWithTag("Spawner"));
                 }      
             }
+            SpawnComponent.DrawHomeRange = EditorGUILayout.Toggle("Draw Home Range", SpawnComponent.DrawHomeRange);
+            SpawnComponent.DrawName = EditorGUILayout.Toggle("Draw Spawn Names", SpawnComponent.DrawName);
+
 
         }
 
@@ -270,6 +271,8 @@ namespace Assets.Editor
             {
             }
             var filepath = EditorUtility.SaveFilePanel("Save File", lastDirectory, name,"xml");
+            if (string.IsNullOrWhiteSpace(filepath))
+                return;
             lastDirectory = Path.GetDirectoryName(filepath);
             
             File.WriteAllText(filepath, XmlSerialize<Spawns>(export));
@@ -341,6 +344,8 @@ namespace Assets.Editor
             }
 
             var filepath = EditorUtility.SaveFilePanel("Save File", lastDirectory, name,"json");
+            if (string.IsNullOrWhiteSpace(filepath))
+                return;
             lastDirectory = Path.GetDirectoryName(filepath);
 
             if (!string.IsNullOrWhiteSpace(filepath))

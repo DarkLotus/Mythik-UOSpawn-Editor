@@ -88,10 +88,8 @@ namespace Assets.Editor
 
             }
             
-            if (ModernUOSpawner && DataJSON != null)
+            if (ModernUOSpawner && DataJSON != null && DataJSON.Entries != null)
             {
-              
-
                 if (DrawHomeRange)
                 {
                     Gizmos.color = Color.blue;
