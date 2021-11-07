@@ -74,6 +74,12 @@ namespace Assets.Editor
             guid = Guid.NewGuid().ToString();
             Init();
         }
+
+        public void NewGUID()
+        {
+            guid = Guid.NewGuid().ToString();
+
+        }
         public void Init()
         {
             if (string.IsNullOrWhiteSpace(MinSpawnDelay))
@@ -103,5 +109,6 @@ namespace Assets.Editor
     
     public interface ISpawner
     {
+        void NewGUID();
     }
 }

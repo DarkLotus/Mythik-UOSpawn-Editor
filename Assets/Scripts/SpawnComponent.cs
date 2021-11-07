@@ -7,7 +7,7 @@ using Xml2CSharp;
 
 namespace Assets.Editor
 {
-
+[ExecuteInEditMode]
     public class SpawnComponent : MonoBehaviour
     {
         public static bool DrawName = true;
@@ -27,6 +27,31 @@ namespace Assets.Editor
 
         private ISpawner _spawner => DataJSON ?? (ISpawner)DataXML;
 
+        private int instanceID;
+
+        private void Awake()
+        {
+            instanceID = gameObject.GetInstanceID();
+        }
+
+        void Update()
+        {
+#if(UNITY_EDITOR)
+            if(!Application.isPlaying)//if in the editor
+            {
+                if (instanceID != gameObject.GetInstanceID()) //if the instance ID doesnt match then this was copied!
+                {
+                    Debug.Log("Duplicated!!: " + gameObject + ", " + transform.parent);
+                    _spawner.NewGUID();
+                }
+                else if(instanceID == 0)
+                    instanceID = gameObject.GetInstanceID();//this object wasnt copied but set its ID to check for further copies
+ 
+                return;//prevent any actual code from running
+            }
+#endif
+        }
+        
         /* public virtual void ToJson(DynamicJson json, JsonSerializerOptions options)
          {
              json.Type = GetType().Name;
@@ -49,20 +74,23 @@ namespace Assets.Editor
        }*/
         private void OnDrawGizmos()
         {
+            if (DrawName)
+            {
+                Handles.color = Color.white;
+                var str = transform.gameObject.name + "\r\n";
+                if(ModernUOSpawner&& DataJSON != null && DataJSON.Entries != null)
+                for (var index = 0; index < DataJSON.Entries.Count; index++)
+                {
+                    var e = DataJSON.Entries[index];
+                    str +=e.SpawnedMaxCount +"x " +  e.Name + "\r\n";
+                }
+                Handles.Label(transform.position + new Vector3(-5,0,-5), str);
+
+            }
+            
             if (ModernUOSpawner && DataJSON != null)
             {
-                if (DrawName)
-                {
-                    Handles.color = Color.white;
-                    var str = transform.gameObject.name + "\r\n";
-                    for (var index = 0; index < DataJSON.Entries.Count; index++)
-                    {
-                        var e = DataJSON.Entries[index];
-                        str +=e.SpawnedMaxCount +"x " +  e.Name + "\r\n";
-                    }
-                    Handles.Label(transform.position + new Vector3(-DataJSON.walkingRange/2.5f,0,-DataJSON.walkingRange/2.5f), str);
-
-                }
+              
 
                 if (DrawHomeRange)
                 {
@@ -91,15 +119,6 @@ namespace Assets.Editor
             
             if (!ModernUOSpawner && DataXML != null)
             {
-                if (DrawName)
-                {
-                    Handles.color = Color.white;
-                    var str = transform.gameObject.name + "\r\n";
-                   
-                    Handles.Label(transform.position + new Vector3(-DataXML.Range/2.5f,0,-DataXML.Range/2.5f), str);
-
-                }
-
                 if (DrawHomeRange || DrawWalkRange)
                 {
                     Gizmos.color = Color.red;
@@ -151,6 +170,9 @@ namespace Assets.Editor
                 DataXML.Objects2 = DataXML.GetSerializedObjectList2();
                 DataXML.X = (int)pos.z;
                 DataXML.Y = (int)pos.x;
+                
+                DataXML.CentreX = (int)pos.z;
+                DataXML.CentreY = (int)pos.x;
             }
             
             

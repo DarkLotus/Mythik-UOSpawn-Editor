@@ -15,23 +15,29 @@ using UnityEngine;
 	[XmlRoot(ElementName="Points")][Serializable]
 	public class XML2Spawner  : ISpawner
 	{
+
 		[XmlElement(ElementName = "Name")]
 		public string Name;//;
 		[XmlElement(ElementName="UniqueId")]
 		public string UniqueId;
 		[XmlElement(ElementName="Map")]
 		public string Map;
-		[XmlElement(ElementName="X")]
+
+		[InfoBox(
+			"X/Y/CentreX/CentreY are synced from the spawners visual location set in the above transform by default")]
+		[XmlIgnore]
+		public bool SyncFromTransForm = true;
+		[XmlElement(ElementName="X")][HideIf("SyncFromTransForm")]
 		public int X;
-		[XmlElement(ElementName="Y")]
+		[XmlElement(ElementName="Y")][HideIf("SyncFromTransForm")]
 		public int Y;
 		[XmlElement(ElementName="Width")]
 		public int Width;
 		[XmlElement(ElementName="Height")]
 		public int Height;
-		[XmlElement(ElementName="CentreX")]
+		[XmlElement(ElementName="CentreX")][HideIf("SyncFromTransForm")]
 		public int CentreX;
-		[XmlElement(ElementName="CentreY")]
+		[XmlElement(ElementName="CentreY")][HideIf("SyncFromTransForm")]
 		public int CentreY;
 		[XmlElement(ElementName="CentreZ")]
 		public int CentreZ;
@@ -96,6 +102,7 @@ using UnityEngine;
 		[XmlElement(ElementName="Objects2")][ReadOnly]
 		public string Objects2;
 
+		[XmlIgnore]
 		public SpawnObject[] Spawns;
 		
 		public Vector3 ToUnityPos() => new Vector3(Y, 5, X);
@@ -142,8 +149,12 @@ using UnityEngine;
 			}
 
 			return sb.ToString();
-		}		
-				
+		}
+
+		public void NewGUID()
+		{
+			UniqueId = Guid.NewGuid().ToString();
+		}
 	}
 
 	[XmlRoot(ElementName="Spawns")]

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -24,7 +25,7 @@ namespace Assets.Editor
             // Get existing open window or if none, make a new one:
             WorldGenerator window = (WorldGenerator)EditorWindow.GetWindow(typeof(WorldGenerator));
 
-            window.minSize = new Vector2(200f, 500f);
+            window.minSize = new Vector2(300f, 500f);
             window.maxSize = new Vector2(600f, 900f);
 
             window.autoRepaintOnSceneChange = true;
@@ -250,9 +251,49 @@ namespace Assets.Editor
                 return text;
             }
         }
-        private void ExportXMLSpawners(GameObject[] findGameObjectsWithTag)
+        private void ExportXMLSpawners(GameObject[] gameObjects)
         {
-            throw new System.NotImplementedException();
+            var export = new Spawns();
+            export.Points = new List<XML2Spawner>();
+            foreach (var go in gameObjects)
+            {
+                var sp = go.GetComponent<SpawnComponent>();
+                sp.Sync();
+                export.Points.Add(sp.DataXML);
+            }
+            var name = "spawner";
+            try
+            {
+                name = gameObjects.First().transform.parent.gameObject.name;
+            }
+            catch
+            {
+            }
+            var filepath = EditorUtility.SaveFilePanel("Save File", lastDirectory, name,"xml");
+            lastDirectory = Path.GetDirectoryName(filepath);
+            
+            File.WriteAllText(filepath, XmlSerialize<Spawns>(export));
+            Debug.Log($"Exported {export.Points.Count} spawners");
+        }
+        
+        public static string XmlSerialize<T>(T entity) where T : class
+        {
+            // removes version
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.OmitXmlDeclaration = true;
+            settings.Indent = true;
+
+            XmlSerializer xsSubmit = new XmlSerializer(typeof(T));
+            using (StringWriter sw = new StringWriter())
+            using (XmlWriter writer = XmlWriter.Create(sw, settings))
+            {
+                // removes namespace
+                var xmlns = new XmlSerializerNamespaces();
+                xmlns.Add(string.Empty, string.Empty);
+
+                xsSubmit.Serialize(writer, entity, xmlns);
+                return sw.ToString(); // Your XML
+            }
         }
 
         private static Sprite SaveSpriteToEditorPath(Sprite sp,string path) {
@@ -290,7 +331,16 @@ namespace Assets.Editor
                 export.Add(sp.DataJSON);
             }
 
-            var filepath = EditorUtility.SaveFilePanel("Save File", lastDirectory, "spawner","json");
+            var name = "spawner";
+            try
+            {
+                name = gameObjects.First().transform.parent.gameObject.name;
+            }
+            catch
+            {
+            }
+
+            var filepath = EditorUtility.SaveFilePanel("Save File", lastDirectory, name,"json");
             lastDirectory = Path.GetDirectoryName(filepath);
 
             if (!string.IsNullOrWhiteSpace(filepath))
@@ -309,7 +359,7 @@ namespace Assets.Editor
             var file = EditorUtility.OpenFilePanel("Select Spawner", lastDirectory, "json");
             lastDirectory = Path.GetDirectoryName(file);
             var parent = new GameObject(Path.GetFileNameWithoutExtension(file));
-
+            
             if (!string.IsNullOrWhiteSpace(file))
             {
                 var spawners = JsonConvert.DeserializeObject<List<ModernUOBaseSpawner>>(File.ReadAllText(file));

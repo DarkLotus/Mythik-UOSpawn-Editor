@@ -50,6 +50,7 @@
      <Compile Include="Assets\Scripts\ClassicUO\Utility\StringHelper.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\IO\Resources\LightsLoader.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\Collections\Deque.cs" />
+     <Compile Include="Assets\Scripts\XML2Spawner.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\IO\Resources\TexmapsLoader.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\JSON\JsonAttributes.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\JSON\Json.cs" />
@@ -77,7 +78,7 @@
      <Compile Include="Assets\Scripts\ClassicUO\IO\UOFileMul.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Client.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\JSON\JsonParser.cs" />
-     <Compile Include="Assets\Scripts\ModernUOSpawner.cs" />
+     <Compile Include="Assets\Scripts\SpawnComponent.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\Platforms\PlatformHelper.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\UInt16Converter.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\StbTextedit\TextEdit.cs" />
@@ -105,7 +106,7 @@
      <Compile Include="Assets\Scripts\ClassicUO\Utility\ZLib\Adler32.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\ZLib.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\ValueStringBuilder.cs" />
-     <Compile Include="Assets\Scripts\BaseSpawner.cs" />
+     <Compile Include="Assets\Scripts\ModernUOBaseSpawner.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\Utility\JSON\JsonBuilder.cs" />
      <Compile Include="Assets\Scripts\ClassicUO\IO\UOFileUop.cs" />
      <Reference Include="UnityEngine">
@@ -693,6 +694,12 @@
      <Reference Include="Unity.VSCode.Editor">
      <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
      </Reference>
+     <Reference Include="NaughtyAttributes.Editor">
+     <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/NaughtyAttributes.Editor.dll</HintPath>
+     </Reference>
+     <Reference Include="NaughtyAttributes.Test">
+     <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/NaughtyAttributes.Test.dll</HintPath>
+     </Reference>
      <Reference Include="Unity.TextMeshPro.Editor">
      <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
      </Reference>
@@ -716,6 +723,9 @@
      </Reference>
      <Reference Include="Unity.VisualScripting.State.Editor">
      <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/Unity.VisualScripting.State.Editor.dll</HintPath>
+     </Reference>
+     <Reference Include="NaughtyAttributes.Core">
+     <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/NaughtyAttributes.Core.dll</HintPath>
      </Reference>
      <Reference Include="VSSettingsProvider">
      <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/VSSettingsProvider.dll</HintPath>
@@ -746,15 +756,6 @@
      </Reference>
      <Reference Include="Unity.SysrootPackage.Editor">
      <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/Unity.SysrootPackage.Editor.dll</HintPath>
-     </Reference>
-     <Reference Include="NaughtyAttributes.Editor">
-     <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/NaughtyAttributes.Editor.dll</HintPath>
-     </Reference>
-     <Reference Include="NaughtyAttributes.Test">
-     <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/NaughtyAttributes.Test.dll</HintPath>
-     </Reference>
-     <Reference Include="NaughtyAttributes.Core">
-     <HintPath>/home/james/Documents/Projects/MythikSpawnEditor/Library/ScriptAssemblies/NaughtyAttributes.Core.dll</HintPath>
      </Reference>
   </ItemGroup>
   <ItemGroup>
